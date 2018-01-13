@@ -32,6 +32,7 @@ def login(browser):
     browser.fill('cid_40$txtUsername', ns.username)
     browser.fill('cid_40$txtPassword', ns.password)
     browser.find_by_name('cid_40$btnLogin').click()
+    logging.info("checking credentials...")
     time.sleep(2)
     if browser.url.split("//")[1].split("/")[0] == "securelb.imodules.com":
         sys.exit("authentication failed... quitting.")
@@ -45,7 +46,7 @@ def iterateProfiles(browser, low, high):
     for i in range(low, high):
         url = "https://mytrinnet.trincoll.edu/s/1490/index-3Col.aspx?sid=1490&gid=1&pgid=275&cid=735&mid="+ str(i) +"#/PersonalProfile"
         browser.visit(url)
-        time.sleep(0.75)
+        time.sleep(0.65)
         verifyPerson(parseHTMLToPerson(i,browser.html))
         if len(exceptions) > 0.4*(high-low):
             logging.critical("breaking at %d" % i)
@@ -70,9 +71,6 @@ def parseHTMLToPerson(mid, html):
                 person.update(kv_pair)
                 label=""
                 data=""
-    #if len(person) == 1:
-        #with open(str(mid)+".html","w") as f:
-        #   f.write(html)
     return person
 
 def verifyPerson(person):
