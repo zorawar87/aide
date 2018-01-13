@@ -10,24 +10,33 @@ import logging
 import progressbar
 
 logging.basicConfig(level=logging.INFO)
-parser = argparse.ArgumentParser()
-parser.add_argument('username', help="your mytrinnet username")
-parser.add_argument('password', help="your mytrinnet password")
-parser.add_argument('ll', type=int, help="lower limit of the iterations")
-parser.add_argument('ul', type=int, help="upper limit of the iterations")
-parser.add_argument('-d','--debug',dest='headless', action='store_false', help="starts in debugging mode (chrome starts in GUI mode)")
-parser.set_defaults(headless=True)
+
+def getArgs():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('username', help="your mytrinnet username")
+    parser.add_argument('password', help="your mytrinnet password")
+    parser.add_argument('ll', type=int, help="lower limit of the iterations")
+    parser.add_argument('ul', type=int, help="upper limit of the iterations")
+    parser.add_argument('-d','--debug',dest='headless', action='store_false', help="starts in debugging mode (chrome starts in GUI mode)")
+    parser.set_defaults(headless=True)
+    ns = parser.parse_args(sys.argv[1:])
+    return ns.username, ns.password, ns.ll, ns.ul, ns.headless
 
 totalis = []
 exceptions = []
 
-def main():
-    with Browser('chrome', headless=ns.headless) as browser:
-        #browser.cookies.add(auth)
-        login(browser)
-        iterateProfiles(browser, ns.ll, ns.ul)
+def aide(username, password, ll, ul, hl):
+    with Browser('chrome', headless=hl) as browser:
+        start = time.time()
+        login(browser, username, password)
+        ul = iterateProfiles(browser, ll, ul)
+        end = time.time()
+        logging.info("Iterating over [%d, %d) took: %f seconds" %(ll, ul, end-start))
 
-def login(browser):
+def login(browser, username, password):
+    """
+    TODO: account for auth errors
+    """
     logging.info("attempting log in...")
     """
     i=0
@@ -40,10 +49,10 @@ def login(browser):
     """
     url = "https://securelb.imodules.com/s/1490/index-3Col.aspx?sid=1490&gid=1&pgid=3&cid=40"
     browser.visit(url)
-    browser.fill('cid_40$txtUsername', ns.username)
-    browser.fill('cid_40$txtPassword', ns.password)
+    browser.fill('cid_40$txtUsername', username)
+    browser.fill('cid_40$txtPassword', password)
     browser.find_by_name('cid_40$btnLogin').click()
-    logging.info("checking credentials...")
+    #logging.info("checking credentials...")
     time.sleep(2)
     if browser.url.split("//")[1].split("/")[0] == "securelb.imodules.com":
         sys.exit("authentication failed... quitting.")
@@ -62,11 +71,9 @@ def iterateProfiles(browser, low, high):
         time.sleep(0.8)
         if verifyPerson(high-low, parseHTMLToPerson(i,browser.html)) == False:
             logging.critical("breaking at %d" % i)
-            ns.ul = i+1
-            break
-        #bar.update(i + 1)
+            return i+1
     logData()
-    #bar.finish()
+    return high
     
 def parseHTMLToPerson(mid, html):
     page = bs(html, 'html.parser')
@@ -91,7 +98,7 @@ def verifyPerson(range, person):
     global totalis
     mid = person["mid"]
     if len(person) == 1:
-        logging.warning("Error or Blank ID at %d" % mid)
+        logging.warning("Error@ID=%d" % mid)
         exceptions.append(mid)
     else:
         totalis.append(person)
@@ -122,12 +129,7 @@ def writeExceptions():
         f.write("\n")
 
 if __name__ == "__main__":
-    start = time.time()
-    ns = parser.parse_args(sys.argv[1:])
-    if ns.headless == False:
+    un, pw, ll, ul, headless = getArgs()
+    if headless == False:
         logging.info("Starting in Debugging mode")
-    main()
-    end = time.time()
-    logging.info("Iterating over [%d, %d) took: %f seconds" %(ns.ll, ns.ul, end-start))
-
-
+    aide(un, pw, ll, ul, headless)
