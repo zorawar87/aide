@@ -28,10 +28,15 @@ exceptions = []
 def aide(username, password, ll, ul, hl):
     with Browser('chrome', headless=hl) as browser:
         start = time.time()
-        login(browser, username, password)
+        if login(browser, username, password) == False:
+            logging.critical("authentication failed... quitting.")
+            return False
+        else:
+            logging.info("authentication successful!")
         ul = iterateProfiles(browser, ll, ul)
         end = time.time()
         logging.info("Iterating over [%d, %d) took: %f seconds" %(ll, ul, end-start))
+        return True
 
 def login(browser, username, password):
     """
@@ -55,9 +60,9 @@ def login(browser, username, password):
     #logging.info("checking credentials...")
     time.sleep(2)
     if browser.url.split("//")[1].split("/")[0] == "securelb.imodules.com":
-        sys.exit("authentication failed... quitting.")
+        return False
     else:
-        logging.info("authentcation successful!")
+        return True
 
 
 def iterateProfiles(browser, low, high):
