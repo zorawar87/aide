@@ -19,7 +19,7 @@ then
 unzip chromedriver_linux64.zip; chmod +x chromedriver_linux64; mv chromedriver_linux64 ~/.local/bin; rm -f chromedriver_linux64.zip
 ```
 
-(make sure that `~/.local/bin` is in your `$PATH`)
+(make sure that `~/.local/bin` is in your `$PATH`. If unsure, execute: `echo "export PATH=\$PATH:~/.local/bin" >> ~/.bashrc; source ~/.bashrc`)
 
 #### For Mac: ####
 ```
@@ -28,6 +28,9 @@ brew install chromedriver
 
 ## Usage ##
 `./ade.py <trin_username> <trin_password> <loop index lower limit> <loop index upper limit>`
+
+## Instructions ##
+see `INSTRUCTIONS.md`
 
 ## Related ##
 I'm trying to blog often, so I wrote about it [here](https://medium.com/@zorawar87/scraping-trincolls-alumni-database-c671c8aa09b8) (TODO: add link).
