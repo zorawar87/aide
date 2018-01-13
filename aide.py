@@ -49,6 +49,7 @@ def iterateProfiles(browser, low, high):
         verifyPerson(parseHTMLToPerson(i,browser.html))
         if len(exceptions) > 0.4*(high-low):
             logging.critical("breaking at %d" % i)
+            ns.ul = i+1
             break
     
 def parseHTMLToPerson(mid, html):
