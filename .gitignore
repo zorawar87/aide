@@ -2,3 +2,4 @@
 out/
 *.json
 *.csv
+__pycache__
