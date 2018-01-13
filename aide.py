@@ -48,6 +48,7 @@ def iterateProfiles(browser, low, high):
         time.sleep(0.75)
         verifyPerson(parseHTMLToPerson(i,browser.html))
         if len(exceptions) > 0.4*(high-low):
+            logging.critical("breaking at %d" % i)
             break
     
 def parseHTMLToPerson(mid, html):
@@ -68,6 +69,9 @@ def parseHTMLToPerson(mid, html):
                 person.update(kv_pair)
                 label=""
                 data=""
+    #if len(person) == 1:
+        #with open(str(mid)+".html","w") as f:
+        #   f.write(html)
     return person
 
 def verifyPerson(person):
