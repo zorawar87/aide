@@ -1,140 +1,203 @@
 #!/usr/bin/python3
 
-from splinter import Browser
+"""
+this module attempts to scrape and extract user data
+from MyTrinNet's data.
+@see https://github.com/zorawar87/aide
+@see https://medium.com/@zorawar87/scraping-trincolls-alumni-database-c671c8aa09b8
+"""
+
 import argparse
 import sys
-from bs4 import BeautifulSoup as bs
 import time
 import json
 import logging
-import progressbar
+from splinter import Browser
+from bs4 import BeautifulSoup as bs
+import coloredlogs as cl
 
 logging.basicConfig(level=logging.INFO)
+cl.install()
 
-def getArgs():
+totalis = []
+exceptions = []
+
+
+def get_args():
+    """
+    returns command line args
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument('username', help="your mytrinnet username")
     parser.add_argument('password', help="your mytrinnet password")
     parser.add_argument('ll', type=int, help="lower limit of the iterations")
     parser.add_argument('ul', type=int, help="upper limit of the iterations")
-    parser.add_argument('-d','--debug',dest='headless', action='store_false', help="starts in debugging mode (chrome starts in GUI mode)")
+    parser.add_argument(
+        '-d',
+        '--debug',
+        dest='headless',
+        action='store_false',
+        help="starts in debugging mode (chrome starts in GUI mode)")
     parser.set_defaults(headless=True)
-    ns = parser.parse_args(sys.argv[1:])
-    return ns.username, ns.password, ns.ll, ns.ul, ns.headless
+    namespace = parser.parse_args(sys.argv[1:])
+    return namespace.username, namespace.password, namespace.ll, namespace.ul, namespace.headless
 
-totalis = []
-exceptions = []
 
-def aide(username, password, ll, ul, hl):
-    with Browser('chrome', headless=hl) as browser:
-        start = time.time()
-        if login(browser, username, password) == False:
-            logging.critical("authentication failed... quitting.")
-            return False
-        else:
-            logging.info("authentication successful!")
-        ul = iterateProfiles(browser, ll, ul)
-        end = time.time()
-        logging.info("Iterating over [%d, %d) took: %f seconds" %(ll, ul, end-start))
-        return True
-
-def login(browser, username, password):
+def aide(uname, pword, lower_lim, upper_lim, hless):
     """
+    completes one cycle of aide
+    """
+    with Browser('chrome', headless=hless) as browser:
+        start = time.time()
+        logging.info("starting with %s %s %d", uname, pword, lower_lim)
+        if not login(browser, uname, pword):
+            logging.critical("authentication failed... quitting.")
+            return -1
+
+        logging.info("authentication successful!")
+        upper_lim = iterate_profiles(browser, lower_lim, upper_lim)
+        end = time.time()
+        logging.info(
+            "Iterating over [%d, %d) took: %f seconds",
+            lower_lim, upper_lim, end - start)
+        return upper_lim
+
+
+def login(browser, uname, pword):
+    """
+    logs a user in
     TODO: account for auth errors
+    TODO: use cookies instead?
     """
     logging.info("attempting log in...")
-    """
-    i=0
-    url = "https://mytrinnet.trincoll.edu/s/1490/index-3Col.aspx?sid=1490&gid=1&pgid=275&cid=735&mid="+ str(i) +"#/PersonalProfile"
+    # i=0
+    #url = "https://mytrinnet.trincoll.edu/s/1490/index-3Col.aspx? "\
+    #"sid=1490&gid=1&pgid=275&cid=735&mid="+ str(i) +"#/PersonalProfile"
+    # browser.visit(url)
+    # auth = { "__cfduid":"d5fc047fe12a2b7d8896933f47194ea121515860850",
+    #"ENCOMPASSSESSIONID_1490":"2012410b-54e0-4bb1-89aa-f58bb2b5882f",
+    #"EncompassAuth":"cwDX50uKtXWslGK_zzphCQ0sy7mrx5fpXL6DNrWOx1lBiFFLj3663qTDM79g" }
+    # browser.cookies.add(auth)
+    # browser.visit(url)
+    scheme = "https:"
+    domain = "securelb.imodules.com"
+    path = "//" + domain + "/s/1490/index-3Col.aspx"
+    query = "?sid=1490&gid=1&pgid=3&cid=40"
+    url = scheme + path + query
     browser.visit(url)
-    #auth = {"__cfduid":"dbb2a6cd8d80c6780ef70535d80acb3551515856917", "ENCOMPASSCC_1490":"bsc", "ENCOMPASSSESSIONID_1490":"2012410b-54e0-4bb1-89aa-f58bb2b5882f", "EncompassAuth":"7VTRsKDOJKhWOgwBKJ3fEwMXwTylNTOSA1Xsph5Raqe2oP__hziIzE86HDh6Dx1EzCvOcYLZKFPIdteQcaGzE-kb8QsqlCyr7rNswsl-YR-LLSGFQ37qFajMaMFMiPFL72RG3SSj9NUt-ufxinolKUia1Et8sIzOpFn-8pn5b0Nv_ZrlXyyDMbAFzlqOm081oP6y-zE58rXIolkHiMjHzdIRxp4GYIF8T9rG5bn6aZrzXAbOBXXIHTdtRDq1Am1UH1IZDLUn1mHHK64ctJ5qXei3AKA"}
-    auth = {"__cfduid":"d5fc047fe12a2b7d8896933f47194ea121515860850", "ENCOMPASSSESSIONID_1490":"2012410b-54e0-4bb1-89aa-f58bb2b5882f", "EncompassAuth":"cwDX50uKtXWslGK_zzphCQ0sy7mrx5fpXL6DNrWOx1lBiFFLj3663qTDM79g"}
-    browser.cookies.add(auth)
-    browser.visit(url)
-    """
-    url = "https://securelb.imodules.com/s/1490/index-3Col.aspx?sid=1490&gid=1&pgid=3&cid=40"
-    browser.visit(url)
-    browser.fill('cid_40$txtUsername', username)
-    browser.fill('cid_40$txtPassword', password)
+    browser.fill('cid_40$txtUsername', uname)
+    browser.fill('cid_40$txtPassword', pword)
     browser.find_by_name('cid_40$btnLogin').click()
-    #logging.info("checking credentials...")
     time.sleep(2)
-    if browser.url.split("//")[1].split("/")[0] == "securelb.imodules.com":
-        return False
-    else:
-        return True
-
-
-def iterateProfiles(browser, low, high):
-    logging.info("iterating profiles from %d to %d..." % (low,high))
-    global totalis
-    for i in range(low, high):
-        #widgets = [progressbar.Percentage(), progressbar.Bar()]
-        #bar = progressbar.ProgressBar(widgets=widgets, min_value=low, max_value=high).start()
-        url = "https://mytrinnet.trincoll.edu/s/1490/index-3Col.aspx?sid=1490&gid=1&pgid=275&cid=735&mid="+ str(i) +"#/PersonalProfile"
-        browser.visit(url)
-        time.sleep(0.8)
-        if verifyPerson(high-low, parseHTMLToPerson(i,browser.html)) == False:
-            logging.critical("breaking at %d" % i)
-            return i+1
-    logData()
-    return high
-    
-def parseHTMLToPerson(mid, html):
-    page = bs(html, 'html.parser')
-    person = {}
-    person.update({"mid":mid})
-    label =""
-    data =""
-    divs = page.find_all("div")
-    for div in divs:
-        class_attr = div.get('class')
-        if class_attr != None:
-            if class_attr[0]=="imod-profile-field-label":
-                label = div.string
-            elif class_attr[0]=="imod-profile-field-data":
-                data = div.string
-                person.update({label: data})
-                label=""
-                data=""
-    return person
-
-def verifyPerson(range, person):
-    global totalis
-    mid = person["mid"]
-    if len(person) == 1:
-        logging.warning("Error@ID=%d" % mid)
-        exceptions.append(mid)
-    else:
-        totalis.append(person)
-    if len(exceptions) > 0.65*(range):
-        logData()
+    if browser.url.split("//")[1].split("/")[0] == domain:
         return False
     return True
 
-def logData():
-    logging.info("logging data")
-    appendJSON()
-    writeExceptions()
 
-def appendJSON():
+def iterate_profiles(browser, low, high):
+    """
+    iterates over a range of profiles
+    """
+    logging.info("iterating profiles from %d to %d...", low, high)
+    for i in range(low, high):
+        #widgets = [progressbar.Percentage(), progressbar.Bar()]
+        #bar = progressbar.ProgressBar(widgets=widgets, min_value=low, max_value=high).start()
+        scheme = "https:"
+        path = "//mytrinnet.trincoll.edu/s/1490/index-3Col.aspx"
+        query = "?sid=1490&gid=1&pgid=275&cid=735&mid=" + str(i)
+        fragment = "#/PersonalProfile"
+        url = scheme + path + query + fragment
+        browser.visit(url)
+        time.sleep(0.8)
+        if not is_valid_person(high - low, parse_HTML_to_person(i,
+                                                                browser.html)):
+            logging.critical("breaking at %d", i)
+            return i + 1
+    log_data()
+    return high
+
+
+def parse_HTML_to_person(mid, html):
+    """
+    forms a person out of given html
+    """
+    page = bs(html, 'html.parser')
+    person = {}
+    person.update({"mid": mid})
+    label = ""
+    data = ""
+    divs = page.find_all("div")
+    for div in divs:
+        class_attr = div.get('class')
+        if class_attr is not None:
+            if class_attr[0] == "imod-profile-field-label":
+                label = div.string
+            elif class_attr[0] == "imod-profile-field-data":
+                data = div.string
+                person.update({label: data})
+                label = ""
+                data = ""
+    return person
+
+
+def is_valid_person(iteration_width, person):
+    """
+    checks if the person is valid
+    """
+    global totalis
+    mid = person["mid"]
+    if len(person) == 1:
+        logging.error("%d is not a valid person :(", mid)
+        exceptions.append(mid)
+    else:
+        totalis.append(person)
+    if len(exceptions) > 0.65 * (iteration_width):
+        log_data()
+        return False
+    return True
+
+
+def log_data():
+    """
+    write data and exceptions to file
+    """
+    logging.info("logging data")
+    write_JSON()
+    write_exceptions()
+
+
+def write_JSON():
+    """
+    write extracted data as JSON to file
+    """
     global totalis
     if len(totalis) == 0:
         return
-    with open("out.json","a") as f:
-        json.dump(totalis, f)
-        f.write("\n")
+    with open("out.json", "a") as file:
+        json.dump(totalis, file)
+        file.write("\n")
     totalis = []
 
-def writeExceptions():
-    global exceptions
-    with open("exceptions.csv","a") as f:
+
+def write_exceptions():
+    """
+    write exceptions to file
+    """
+    with open("exceptions.csv", "a") as file:
         for index in exceptions:
-            f.write("%d, " % index)
-        f.write("\n")
+            file.write("%d, " % index)
+        file.write("\n")
+
+
+def main():
+    """
+    groundwork to extract data
+    """
+    uname, pword, lower_lim, upper_lim, hless = get_args()
+    if not hless:
+        logging.info("Starting in Debugging mode")
+    aide(uname, pword, lower_lim, upper_lim, hless)
+
 
 if __name__ == "__main__":
-    un, pw, ll, ul, headless = getArgs()
-    if headless == False:
-        logging.info("Starting in Debugging mode")
-    aide(un, pw, ll, ul, headless)
+    main()
