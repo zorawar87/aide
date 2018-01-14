@@ -26,6 +26,6 @@ def main(creds, bin, epoch, hl):
 if __name__ == "__main__":
     [creds, bin, epoch, hl] = getArgs()
     with open("rc.aide", 'w') as f:
-        f.write("%s %s %d".format(creds, bin, epoch))
+        f.write(creds+" "+bin+" "+str(epoch)+"\n")
     main(creds, bin, epoch, hl)
 
