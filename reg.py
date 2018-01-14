@@ -10,6 +10,7 @@ from MyTrinNet's data.
 import argparse
 import sys
 import logging
+
 from splinter import Browser
 import coloredlogs as cl
 

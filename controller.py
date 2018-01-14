@@ -9,8 +9,8 @@ This module scales aide to run for N users
 import argparse
 import sys
 import logging
-import coloredlogs as cl
 
+import coloredlogs as cl
 import aide
 
 logging.basicConfig(level=logging.INFO)

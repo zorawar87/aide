@@ -12,6 +12,7 @@ import sys
 import time
 import json
 import logging
+
 from splinter import Browser
 from bs4 import BeautifulSoup as bs
 import coloredlogs as cl
