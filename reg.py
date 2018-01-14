@@ -121,7 +121,7 @@ def save(uname, password, cid):
     """
     saved registered data
     """
-    with open("../user", "a") as file:
+    with open("saved-"+str(time.time()), "a") as file:
         file.write("{} {} {}\n".format(cid, uname, password))
     logging.info("saved.")
 
