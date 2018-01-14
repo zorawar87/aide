@@ -36,13 +36,13 @@ def get_args():
     return namespace.cred_file, namespace.log_file, namespace.epoch, namespace.headless
 
 
-def controller(creds, log, epoch, hless):
+def controller(cred_file, log, epoch, hless):
     """
     controls iterations of aide
     """
     iterator = epoch
-    with open(creds) as cred_file, open(log) as log_file:
-        for line in cred_file:
+    with open(cred_file) as file, open(log) as log_file:
+        for line in file:
             uname, pword = line.split(" ")
             logging.info(
                 "\t\t########## Checking %s at epoch=%d. ##########",
@@ -63,10 +63,10 @@ def main():
     """
     initiates scaled extraction
     """
-    [creds, log, epoch, hless] = get_args()
-    with open("rc.aide", 'w') as file:
-        file.write("/controller.py {} {} {}\n".format(creds, log, epoch))
-    controller(creds, log, epoch, hless)
+    [cred_file, log_file, epoch, hless] = get_args()
+    with open("rc.aide", 'a') as file:
+        file.write("./controller.py {} {} {}\n".format(cred_file, log_file, epoch))
+    controller(cred_file, log_file, epoch, hless)
 
 
 if __name__ == "__main__":

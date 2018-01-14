@@ -10,6 +10,7 @@ from MyTrinNet's data.
 import argparse
 import sys
 import logging
+import time
 
 from splinter import Browser
 import coloredlogs as cl
@@ -132,6 +133,8 @@ def main():
     groundwork to start reg-ing
     """
     password, lower_lim, upper_lim, hless = get_args()
+    with open("rc.reg", 'a') as file:
+        file.write("./reg.py {} {} {}\n".format(password, lower_lim, upper_lim))
     if not hless:
         logging.info("Starting in Debugging mode")
     reg(password, lower_lim, upper_lim, hless)
