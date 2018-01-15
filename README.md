@@ -16,7 +16,7 @@ wget https://chromedriver.storage.googleapis.com/2.34/chromedriver_linux64.zip
 
 then
 ```bash
-unzip chromedriver_linux64.zip && chmod +x chromedriver_linux64 && mv chromedriver_linux64 ~/.local/bin && rm -f chromedriver_linux64.zip;
+unzip chromedriver_linux64.zip && chmod +x chromedriver && mv chromedriver ~/.local/bin && rm -f chromedriver_linux64.zip;
 ```
 
 If `~/.local/bin` in not in `$PATH`, then execute
