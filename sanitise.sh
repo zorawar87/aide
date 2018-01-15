@@ -7,7 +7,7 @@
 for var in "$@"
 do
   if [ -f "$var" ]; then
-    sort -u "$var" -o "$var"
+    sort -uR "$var" -o "$var"
     echo "sorted uniquely into" $(wc -l "$var") "lines"
   else
     echo "$var is an invalid file"

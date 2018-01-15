@@ -41,8 +41,10 @@ def controller(cred_file, log, epoch, hless):
     controls iterations of aide
     """
     iterator = epoch
-    with open(cred_file) as file, open(log) as log_file:
+    with open(cred_file) as file, open(log, "a") as log_file:
         for line in file:
+            with open("rc.aide", 'a') as file:
+                file.write("started ./controller.py {} {} {}\n".format(cred_file, log_file, iterator))
             uname, pword = line.split(" ")
             logging.info(
                 "\t\t########## Checking %s at epoch=%d. ##########",
@@ -64,8 +66,6 @@ def main():
     initiates scaled extraction
     """
     [cred_file, log_file, epoch, hless] = get_args()
-    with open("rc.aide", 'a') as file:
-        file.write("./controller.py {} {} {}\n".format(cred_file, log_file, epoch))
     controller(cred_file, log_file, epoch, hless)
 
 
