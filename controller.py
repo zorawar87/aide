@@ -45,7 +45,8 @@ def controller(cred_file, log, epoch, hless):
         for line in file:
             with open("rc.aide", 'a') as file:
                 file.write("started ./controller.py {} {} {}\n".format(cred_file, log_file, iterator))
-            uname, pword = line.split(" ")
+            splits = line.split(" ")
+            uname, pword = splits[0], splits[1]
             logging.info(
                 "\t\t########## Checking %s at epoch=%d. ##########",
                 uname.strip(), iterator)
