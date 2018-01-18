@@ -13,8 +13,8 @@ import logging
 import coloredlogs as cl
 import aide
 
-logging.basicConfig(level=logging.INFO)
-cl.install()
+logging.basicConfig(level=logging.DEBUG)
+cl.install(level='DEBUG')
 
 
 def get_args():
@@ -47,8 +47,8 @@ def controller(cred_file, log, epoch, hless):
                 file.write("started ./controller.py {} {} {}\n".format(cred_file, log_file, iterator))
             splits = line.split(" ")
             uname, pword = splits[0], splits[1]
-            logging.info(
-                "\t\t########## Checking %s at epoch=%d. ##########",
+            logging.debug(
+                "########## Checking %s at epoch=%d. ##########",
                 uname.strip(), iterator)
             new_epoch = aide.aide(
                 uname.strip(),

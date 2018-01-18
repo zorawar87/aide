@@ -17,8 +17,9 @@ from splinter import Browser
 from bs4 import BeautifulSoup as bs
 import coloredlogs as cl
 
-logging.basicConfig(level=logging.INFO)
-cl.install()
+logging.getLogger('selenium').setLevel(logging.WARNING)
+logging.basicConfig(level=logging.DEBUG)
+cl.install(level='DEBUG')
 
 totalis = []
 exceptions = []
@@ -55,7 +56,7 @@ def aide(uname, pword, lower_lim, upper_lim, hless):
             logging.critical("authentication failed... quitting.")
             return -1
 
-        logging.info("authentication successful!")
+        logging.debug("authentication successful!")
         upper_lim = iterate_profiles(browser, lower_lim, upper_lim)
         end = time.time()
         logging.info(
@@ -89,7 +90,7 @@ def login(browser, uname, pword):
     browser.fill('cid_40$txtUsername', uname)
     browser.fill('cid_40$txtPassword', pword)
     browser.find_by_name('cid_40$btnLogin').click()
-    time.sleep(2)
+    time.sleep(1.5)
     if browser.url.split("//")[1].split("/")[0] == domain:
         return False
     return True
@@ -194,7 +195,7 @@ def main():
     """
     groundwork to extract data
     """
-    uname, pword, lower_lim, upper_lim, hless = get_args()
+    uname, pword, lower_lim, upper_lim, hless= get_args()
     if not hless:
         logging.info("Starting in Debugging mode")
     aide(uname, pword, lower_lim, upper_lim, hless)
