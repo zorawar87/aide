@@ -59,7 +59,7 @@ def controller(cred_file, log, epoch, hless):
             if new_epoch != -1:
                 iterator = new_epoch
                 out_string = line.strip() + str(iterator) + str(iterator + 150) + "\n"
-                log_file.write("{}\n".format(new_epoch))
+                log_file.write("{} {}\n".format(uname.strip(), pword.strip()))
 
 
 def main():
